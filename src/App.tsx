@@ -258,6 +258,7 @@ export default function App() {
   const [productQuestion, setProductQuestion] = useState("");
   const [productAnswer, setProductAnswer] = useState("");
   const [isExplainerLoading, setIsExplainerLoading] = useState(false);
+  const [productFilter, setProductFilter] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -777,41 +778,115 @@ export default function App() {
             <div className="text-center mb-16">
               <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">Built for your vertical</h2>
               <p className="text-cream/60 max-w-2xl mx-auto">Specific tools for specific trades. No generic software, just AI that understands your business.</p>
+              
+              {productFilter && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 flex items-center justify-center gap-4"
+                >
+                  <span className="text-sm text-cream/40 uppercase tracking-widest font-bold">Filtering by:</span>
+                  <div className="flex items-center gap-2 bg-amber-custom/20 border border-amber-custom/30 px-4 py-2 rounded-full">
+                    <span className="text-amber-custom font-bold text-sm">{productFilter}</span>
+                    <button 
+                      onClick={() => setProductFilter(null)}
+                      className="text-amber-custom hover:text-white transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
-                { name: "YardHub", desc: "Financial operating system for Caribbean informal vendors. Credit scoring, WhatsApp payments, business tracking.", icon: "💰", color: "emerald" },
-                { name: "NotaryOS", desc: "Agentic AI platform for mobile notary professionals in the US. Job scheduling, document generation, compliance tracking.", icon: "✒️", color: "amber" },
-                { name: "TrustFix", desc: "Home services marketplace connecting homeowners with vetted local trades. Consumer-first, search-driven.", icon: "🛠️", color: "blue" },
-                { name: "FarmWise", desc: "AI farming intelligence for smallholder farmers. Crop planning, weather data, market pricing.", icon: "🌱", color: "indigo" },
-                { name: "YardieBiz", desc: "WhatsApp AI business assistant for Jamaican food vendors. Daily sales summaries, inventory tracking.", icon: "🍱", color: "pink" }
-              ].map((product, i) => (
+                { 
+                  name: "YardHub", 
+                  desc: "Financial operating system for Caribbean informal vendors.", 
+                  detailedDesc: "YardHub provides a full suite of financial tools designed specifically for the informal economy. From credit scoring based on alternative data to seamless WhatsApp-integrated payments, we help vendors professionalize and grow their businesses.",
+                  image: "https://picsum.photos/seed/finance/800/600",
+                  link: "#",
+                  icon: "💰", 
+                  color: "emerald" 
+                },
+                { 
+                  name: "NotaryOS", 
+                  desc: "Agentic AI platform for mobile notary professionals in the US.", 
+                  detailedDesc: "NotaryOS automates the complex workflow of mobile notaries. It handles job scheduling, intelligent document generation, and strict compliance tracking, allowing professionals to focus on their clients instead of paperwork.",
+                  image: "https://picsum.photos/seed/notary/800/600",
+                  link: "#",
+                  icon: "✒️", 
+                  color: "amber" 
+                },
+                { 
+                  name: "TrustFix", 
+                  desc: "Home services marketplace connecting homeowners with vetted local trades.", 
+                  detailedDesc: "TrustFix is a consumer-first platform that uses AI to vet and match local tradespeople with homeowners. We prioritize transparency, quality, and fair pricing in the home services industry.",
+                  image: "https://picsum.photos/seed/trades/800/600",
+                  link: "#",
+                  icon: "🛠️", 
+                  color: "blue" 
+                },
+                { 
+                  name: "FarmWise", 
+                  desc: "AI farming intelligence for smallholder farmers.", 
+                  detailedDesc: "FarmWise brings high-tech agricultural insights to smallholder farms. Our AI analyzes weather patterns, soil data, and market pricing to provide actionable crop planning and yield optimization strategies.",
+                  image: "https://picsum.photos/seed/farming/800/600",
+                  link: "#",
+                  icon: "🌱", 
+                  color: "indigo" 
+                },
+                { 
+                  name: "YardieBiz", 
+                  desc: "WhatsApp AI business assistant for Jamaican food vendors.", 
+                  detailedDesc: "YardieBiz lives where vendors already work: WhatsApp. Our AI assistant tracks daily sales, manages inventory, and provides simple financial summaries via voice or text messages.",
+                  image: "https://picsum.photos/seed/food/800/600",
+                  link: "#",
+                  icon: "🍱", 
+                  color: "pink" 
+                }
+              ].filter(p => !productFilter || p.name === productFilter).map((product, i) => (
                 <motion.div
                   key={product.name}
+                  layout
                   initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
                   whileHover={{ y: -10 }}
-                  onClick={() => {
-                    setActiveProduct(product);
-                    setProductAnswer("");
-                    setProductQuestion("");
-                  }}
-                  className="group cursor-pointer bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:bg-white/10 transition-all"
+                  className="group bg-white/5 border border-white/10 p-8 rounded-[2rem] hover:bg-white/10 transition-all flex flex-col"
                 >
                   <div className="text-4xl mb-6">{product.icon}</div>
                   <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-amber-custom transition-colors">{product.name}</h3>
-                  <p className="text-cream/50 text-sm leading-relaxed mb-6">{product.desc}</p>
+                  <p className="text-cream/50 text-sm leading-relaxed mb-6 flex-1">{product.desc}</p>
                   <div className="flex flex-wrap gap-2 mb-6">
-                    <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 rounded-full text-cream/40 group-hover:border-amber-custom/50 group-hover:text-amber-custom transition-all">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProductFilter(product.name);
+                      }}
+                      className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-all border ${
+                        productFilter === product.name 
+                          ? 'bg-amber-custom border-amber-custom text-espresso' 
+                          : 'bg-white/5 border-white/10 text-cream/40 hover:border-amber-custom/50 hover:text-amber-custom'
+                      }`}
+                    >
                       {product.name}
-                    </span>
+                    </button>
                   </div>
-                  <div className="flex items-center gap-2 text-amber-custom font-bold text-sm">
-                    <span>Learn more</span>
-                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  <div className="flex flex-col gap-4">
+                    <button 
+                      onClick={() => {
+                        setActiveProduct(product);
+                        setProductAnswer("");
+                        setProductQuestion("");
+                      }}
+                      className="w-full bg-white/5 border border-white/10 text-cream font-bold py-3 rounded-xl hover:bg-amber-custom hover:text-espresso transition-all flex items-center justify-center gap-2 text-sm"
+                    >
+                      View Details <ArrowRight size={16} />
+                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -1172,7 +1247,7 @@ export default function App() {
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="relative bg-white/5 border border-white/10 p-8 md:p-12 rounded-[2.5rem] max-w-2xl w-full shadow-2xl"
+                className="relative bg-white/5 border border-white/10 p-8 md:p-12 rounded-[2.5rem] max-w-3xl w-full shadow-2xl overflow-y-auto max-h-[90vh]"
               >
                 <div className="flex justify-between items-start mb-8">
                   <div className="flex items-center gap-4">
@@ -1185,9 +1260,27 @@ export default function App() {
                   <button onClick={() => setActiveProduct(null)} className="text-cream/40 hover:text-cream"><X /></button>
                 </div>
 
-                <p className="text-cream/60 mb-8">{activeProduct.desc}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <div className="rounded-2xl overflow-hidden border border-white/10 aspect-video md:aspect-square">
+                    <img 
+                      src={activeProduct.image} 
+                      alt={activeProduct.name} 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <p className="text-cream/80 leading-relaxed mb-6">{activeProduct.detailedDesc}</p>
+                    <a 
+                      href={activeProduct.link}
+                      className="inline-flex items-center gap-2 text-amber-custom font-bold hover:underline"
+                    >
+                      Learn more at official site <ArrowRight size={16} />
+                    </a>
+                  </div>
+                </div>
 
-                <div className="space-y-4 mb-8">
+                <div className="space-y-4 mb-8 pt-8 border-t border-white/10">
                   <p className="text-sm font-bold text-ochre uppercase tracking-widest">Ask AI about this product</p>
                   <div className="flex gap-2">
                     <input 
