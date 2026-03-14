@@ -1,5 +1,51 @@
 {
   "entities": {
+    "profile": {
+      "title": "Business Profile",
+      "description": "A detailed profile of an entrepreneur's business.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The Firebase Auth UID of the user"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The entrepreneur's full name"
+        },
+        "businessName": {
+          "type": "string",
+          "description": "The name of the business"
+        },
+        "vertical": {
+          "type": "string",
+          "description": "The industry or trade category"
+        },
+        "location": {
+          "type": "string",
+          "description": "The primary location of operations"
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "The phone number for WhatsApp integration"
+        },
+        "onboardingCompleted": {
+          "type": "boolean",
+          "description": "Whether the user has finished the onboarding flow"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the profile was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the profile was last updated"
+        }
+      },
+      "required": ["uid", "fullName", "businessName", "vertical", "onboardingCompleted", "createdAt"]
+    },
     "waitlist": {
       "title": "Waitlist Entry",
       "description": "A user who has joined the waitlist for EntrepAIneur products.",
@@ -39,6 +85,10 @@
     "waitlist": {
       "schema": "waitlist",
       "description": "Collection of waitlist signups"
+    },
+    "profiles": {
+      "schema": "profile",
+      "description": "User business profiles created during onboarding"
     }
   }
 }

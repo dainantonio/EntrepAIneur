@@ -4,12 +4,15 @@
  */
 
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowRight, Menu, X, Play, Mic, Waves, CheckCircle2, AlertCircle, MessageSquare, Sparkles, Send, Loader2 } from "lucide-react";
+import { ArrowRight, Menu, X, Play, Mic, Waves, CheckCircle2, AlertCircle, MessageSquare, Sparkles, Send, Loader2, LogOut, User as UserIcon } from "lucide-react";
 import { useState, useEffect, ChangeEvent, useRef, FormEvent } from "react";
 import * as gemini from "./services/geminiService";
-import { joinWaitlist } from "./firebase";
+import { joinWaitlist, auth, db, googleProvider } from "./firebase";
+import { onAuthStateChanged, signInWithPopup, signOut, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { OnboardingFlow } from "./components/OnboardingFlow";
 
-const Navbar = () => {
+const Navbar = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () => void, onLogout: () => void }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Lock body scroll when menu is open
@@ -42,9 +45,31 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <a href="#products" className="text-sm font-medium hover:text-amber-custom transition-colors">Products</a>
             <a href="#about" className="text-sm font-medium hover:text-amber-custom transition-colors">About</a>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                  <img src={user.photoURL || ""} alt="" className="w-5 h-5 rounded-full" />
+                  <span className="text-xs font-medium text-cream/70">{user.displayName?.split(' ')[0]}</span>
+                </div>
+                <button 
+                  onClick={onLogout}
+                  className="text-cream/40 hover:text-red-400 transition-colors"
+                  title="Logout"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={onLogin}
+                className="bg-cream text-espresso px-5 py-2 rounded-full text-sm font-bold hover:bg-amber-custom transition-all duration-300"
+              >
+                Login
+              </button>
+            )}
             <a 
               href="#waitlist" 
-              className="bg-cream text-espresso px-5 py-2 rounded-full text-sm font-bold hover:bg-amber-custom transition-all duration-300"
+              className="border border-amber-custom/30 text-amber-custom px-5 py-2 rounded-full text-sm font-bold hover:bg-amber-custom hover:text-espresso transition-all duration-300"
             >
               Waitlist
             </a>
@@ -104,6 +129,37 @@ const Navbar = () => {
                 >
                   Join Waitlist
                 </a>
+
+                {user ? (
+                  <div className="mt-4 flex flex-col gap-4">
+                    <div className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/10">
+                      <img src={user.photoURL || ""} alt="" className="w-10 h-10 rounded-full" />
+                      <div>
+                        <p className="font-bold text-cream">{user.displayName}</p>
+                        <p className="text-xs text-cream/40">{user.email}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        onLogout();
+                        setIsOpen(false);
+                      }}
+                      className="flex items-center justify-center gap-2 bg-red-500/10 text-red-400 py-4 rounded-2xl font-bold border border-red-500/20"
+                    >
+                      <LogOut size={20} /> Logout
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      onLogin();
+                      setIsOpen(false);
+                    }}
+                    className="bg-cream text-espresso py-4 rounded-2xl font-bold text-xl hover:bg-amber-custom transition-all"
+                  >
+                    Login to EntrepAIneur
+                  </button>
+                )}
                 
                 <div className="mt-8 pt-8 border-t border-white/10">
                   <p className="text-sm text-cream/50 font-medium mb-4 uppercase tracking-widest">Connect with us</p>
@@ -126,6 +182,48 @@ const Navbar = () => {
 };
 
 export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      setIsAuthReady(true);
+      if (currentUser) {
+        const docRef = doc(db, 'profiles', currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProfile(docSnap.data());
+          setShowOnboarding(false);
+        } else {
+          setShowOnboarding(true);
+        }
+      } else {
+        setProfile(null);
+        setShowOnboarding(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
   const [isListening, setIsListening] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -373,8 +471,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen selection:bg-amber-custom selection:text-espresso">
-      <Navbar />
-      
+      <Navbar user={user} onLogin={handleLogin} onLogout={handleLogout} />
+
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingFlow onComplete={() => setShowOnboarding(false)} />
+        )}
+      </AnimatePresence>
+
       <main>
         <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-32 pb-20">
           {/* Background Texture/Gradient */}
@@ -417,20 +521,20 @@ export default function App() {
                 transition={{ duration: 0.8, delay: 0.4 }}
                 className="flex flex-col sm:flex-row gap-4 pt-4"
               >
-                <button className="group relative bg-amber-custom text-espresso px-8 py-4 rounded-full font-bold text-lg flex items-center justify-center gap-2 overflow-hidden transition-all hover:scale-105 active:scale-95">
-                  <span className="relative z-10">Join the waitlist</span>
+                <button 
+                  onClick={user ? () => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' }) : handleLogin}
+                  className="group relative bg-amber-custom text-espresso px-8 py-4 rounded-full font-bold text-lg flex items-center justify-center gap-2 overflow-hidden transition-all hover:scale-105 active:scale-95"
+                >
+                  <span className="relative z-10">{user ? "View Products" : "Get Started"}</span>
                   <ArrowRight className="relative z-10 group-hover:translate-x-1 transition-transform" size={20} />
                   <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
                 </button>
                 
                 <a 
-                  href="https://wa.me/1234567890" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="group border border-[#25D366]/40 hover:border-[#25D366] px-8 py-4 rounded-full font-bold text-lg flex items-center justify-center gap-2 transition-all hover:bg-[#25D366]/10 active:scale-95 text-white"
+                  href="#waitlist" 
+                  className="group border border-white/20 hover:border-white/40 px-8 py-4 rounded-full font-bold text-lg flex items-center justify-center gap-2 transition-all hover:bg-white/5 active:scale-95 text-white"
                 >
-                  <MessageSquare size={18} className="text-[#25D366]" />
-                  <span>WhatsApp Us</span>
+                  <span>Join Waitlist</span>
                 </a>
               </motion.div>
 
@@ -700,6 +804,11 @@ export default function App() {
                   <div className="text-4xl mb-6">{product.icon}</div>
                   <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-amber-custom transition-colors">{product.name}</h3>
                   <p className="text-cream/50 text-sm leading-relaxed mb-6">{product.desc}</p>
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 rounded-full text-cream/40 group-hover:border-amber-custom/50 group-hover:text-amber-custom transition-all">
+                      {product.name}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 text-amber-custom font-bold text-sm">
                     <span>Learn more</span>
                     <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />

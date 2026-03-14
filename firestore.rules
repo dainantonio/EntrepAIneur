@@ -11,6 +11,18 @@
 //   - productInterest: string (optional)
 //   - createdAt: timestamp (required)
 //
+// Collection: profiles
+// Fields:
+//   - uid: string (required)
+//   - fullName: string (required)
+//   - businessName: string (required)
+//   - vertical: string (required)
+//   - location: string (optional)
+//   - whatsappNumber: string (optional)
+//   - onboardingCompleted: boolean (required)
+//   - createdAt: timestamp (required)
+//   - updatedAt: timestamp (optional)
+//
 // ===============================================================
 
 rules_version = '2';
@@ -20,6 +32,10 @@ service cloud.firestore {
     // Helper Functions
     function isAuthenticated() {
       return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
     }
 
     function isValidEmail(email) {
@@ -36,6 +52,19 @@ service cloud.firestore {
              (!('productInterest' in data) || (data.productInterest is string && data.productInterest.size() <= 50));
     }
 
+    function isValidProfile(data) {
+      return data.keys().hasAll(['uid', 'fullName', 'businessName', 'vertical', 'onboardingCompleted', 'createdAt']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100 &&
+             data.businessName is string && data.businessName.size() >= 2 && data.businessName.size() <= 100 &&
+             data.vertical is string &&
+             data.onboardingCompleted is bool &&
+             data.createdAt is timestamp &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 200)) &&
+             (!('whatsappNumber' in data) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 20)) &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp));
+    }
+
     // Waitlist collection
     match /waitlist/{entryId} {
       // Anyone can join the waitlist (create)
@@ -45,6 +74,14 @@ service cloud.firestore {
       allow read, update, delete: if isAuthenticated() && 
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
          (request.auth.token.email == "dain.russell@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // User profiles
+    match /profiles/{profileId} {
+      allow read: if isOwner(resource.data.uid);
+      allow create: if isAuthenticated() && isValidProfile(request.resource.data) && request.resource.data.uid == request.auth.uid;
+      allow update: if isOwner(resource.data.uid) && isValidProfile(request.resource.data) && request.resource.data.uid == resource.data.uid;
+      allow delete: if false;
     }
 
     // User profiles (for admin checks)
