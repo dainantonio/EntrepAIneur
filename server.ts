@@ -24,6 +24,7 @@ PRODUCTS YOU KNOW:
 3. TrustFix — home services marketplace connecting homeowners with vetted local trades and service professionals. Consumer-first, search-driven. Best for: plumbers, electricians, handymen, cleaners, landscapers — especially in Columbus OH and surrounding areas.
 4. FarmWise — AI farming intelligence for smallholder farmers. Crop planning, weather data, market pricing in plain language. Best for: Jamaican farmers, smallholders, agricultural cooperatives in the Caribbean.
 5. YardieBiz — WhatsApp AI business assistant for Jamaican food vendors. Daily sales summaries, inventory tracking, customer management — all via WhatsApp chat. Best for: Jamaican food vendors, patty shops, jerk spots, home-based food businesses, diaspora food entrepreneurs.
+6. Signal to Startup — Turn news, policy, and market signals into actionable business opportunities. Advanced AI monitoring of global and local news, policy changes, and market trends. Best for: entrepreneurs looking for their next venture, investors, and business owners seeking to pivot or identify emerging opportunities.
 
 MATCH LOGIC:
 - Caribbean vendor / trader / market → YardHub or YardieBiz (ask if they need full financial tracking or just WhatsApp-based)
@@ -31,6 +32,7 @@ MATCH LOGIC:
 - US notary / signing agent → NotaryOS
 - Home service trade US → TrustFix
 - Farmer / agriculture Jamaica → FarmWise
+- News / Policy / Market trends / New opportunities → Signal to Startup
 - If unclear → ask one question: "What does a normal workday look like for you?" — the answer will always reveal the match.
 
 CONVERSATION FLOW:
@@ -71,7 +73,7 @@ async function startServer() {
       const { message, history } = req.body;
       const ai = getAI();
       const chat = ai.chats.create({
-        model: "gemini-2.0-flash",
+        model: "gemini-3-flash-preview",
         config: { systemInstruction: SYSTEM_INSTRUCTION },
         history: history || []
       });
@@ -88,11 +90,11 @@ async function startServer() {
       const { businessDescription } = req.body;
       const ai = getAI();
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3-flash-preview",
         contents: `The user just joined the waitlist for EntrepAIneur. 
         Business Description: "${businessDescription}"
         Based on this, ask 2-3 smart follow-up questions to understand their business type, market, and biggest pain point. 
-        Also, identify which of our products (YardHub, NotaryOS, TrustFix, FarmWise, YardieBiz) fits them best.
+        Also, identify which of our products (YardHub, NotaryOS, TrustFix, FarmWise, YardieBiz, Signal to Startup) fits them best.
         Respond in JSON format.`,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
@@ -127,7 +129,7 @@ async function startServer() {
       const { businessType, market } = req.body;
       const ai = getAI();
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3-flash-preview",
         contents: `Business Type: ${businessType}, Market: ${market}.
         Generate a one-paragraph elevator pitch written in the EntrepAIneur brand voice (professional, Caribbean-rooted, tech-forward).`,
         config: { systemInstruction: SYSTEM_INSTRUCTION }
@@ -144,7 +146,7 @@ async function startServer() {
       const { productName, userQuestion } = req.body;
       const ai = getAI();
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-3-flash-preview",
         contents: `Product: ${productName}. User asks: "${userQuestion}"
         Explain how this product helps them in conversational language.`,
         config: { systemInstruction: SYSTEM_INSTRUCTION }

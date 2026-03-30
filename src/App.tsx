@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight, Menu, X, Play, Mic, Waves, CheckCircle2, AlertCircle, MessageSquare, Sparkles, Send, Loader2, LogOut, User as UserIcon } from "lucide-react";
 import { useState, useEffect, ChangeEvent, useRef, FormEvent } from "react";
 import * as gemini from "./services/geminiService";
-import { joinWaitlist, updateWaitlistQualifier, auth, db, googleProvider } from "./firebase";
+import { joinWaitlist, auth, db, googleProvider } from "./firebase";
 import { onAuthStateChanged, signInWithPopup, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { OnboardingFlow } from "./components/OnboardingFlow";
@@ -43,7 +43,8 @@ const Navbar = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () =>
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#products" className="text-sm font-medium hover:text-amber-custom transition-colors">Products</a>
+            <a href="#ventures" className="text-sm font-medium hover:text-amber-custom transition-colors">Ventures</a>
+            <a href="#insights" className="text-sm font-medium hover:text-amber-custom transition-colors">Insights</a>
             <a href="#about" className="text-sm font-medium hover:text-amber-custom transition-colors">About</a>
             {user ? (
               <div className="flex items-center gap-4">
@@ -109,11 +110,18 @@ const Navbar = ({ user, onLogin, onLogout }: { user: User | null, onLogin: () =>
             >
               <div className="flex flex-col gap-8">
                 <a 
-                  href="#products" 
+                  href="#ventures" 
                   className="text-3xl font-display font-bold text-cream hover:text-amber-custom transition-colors" 
                   onClick={() => setIsOpen(false)}
                 >
-                  Products
+                  Ventures
+                </a>
+                <a 
+                  href="#insights" 
+                  className="text-3xl font-display font-bold text-cream hover:text-amber-custom transition-colors" 
+                  onClick={() => setIsOpen(false)}
+                >
+                  Insights
                 </a>
                 <a 
                   href="#about" 
@@ -241,7 +249,6 @@ export default function App() {
   const [showQualifier, setShowQualifier] = useState(false);
   const [qualifierData, setQualifierData] = useState<any>(null);
   const [qualifierAnswers, setQualifierAnswers] = useState<string[]>([]);
-  const [waitlistDocId, setWaitlistDocId] = useState<string | null>(null);
   
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<{role: string, text: string}[]>([
@@ -262,6 +269,19 @@ export default function App() {
   const [productFilter, setProductFilter] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeProduct) {
+      // Ensure we scroll to the top of the modal content when a product is selected
+      const timer = setTimeout(() => {
+        if (modalScrollRef.current) {
+          modalScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [activeProduct]);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -349,7 +369,7 @@ export default function App() {
   };
 
   const renderMessageText = (text: string) => {
-    const products = ["YardHub", "NotaryOS", "TrustFix", "FarmWise", "YardieBiz"];
+    const products = ["YardHub", "NotaryOS", "TrustFix", "FarmWise", "YardieBiz", "Signal to Startup"];
     let parts: (string | any)[] = [text];
 
     products.forEach(product => {
@@ -422,14 +442,12 @@ export default function App() {
       setShowQualifier(true);
       
       // Save to Firebase
-      const docId = await joinWaitlist({
+      await joinWaitlist({
         name: formData.name,
         email: formData.email,
         business: formData.business,
-        productInterest: data.recommendedProduct,
-        aiReasoning: data.reasoning
+        productInterest: data.recommendedProduct
       });
-      if (docId) setWaitlistDocId(docId);
     } catch (error: any) {
       console.error(error);
       alert(`Failed to join waitlist: ${error.message || "Unknown error"}`);
@@ -504,8 +522,8 @@ export default function App() {
                   Now in Private Beta
                 </span>
                 <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[1.1] tracking-tighter text-balance">
-                  The AI built for <br />
-                  <span className="text-amber-custom italic font-serif font-medium inline-block py-1">how you actually</span> work
+                  Building the <br />
+                  <span className="text-amber-custom italic font-serif font-medium inline-block py-1">Future of AI</span> Ventures
                 </h1>
               </motion.div>
 
@@ -515,8 +533,8 @@ export default function App() {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="text-lg md:text-xl text-cream/70 max-w-xl leading-relaxed font-light"
               >
-                Voice-first. WhatsApp-ready. Built for the builder the tools industry forgot. 
-                Manage your shop, track your trades, and grow your business with the power of AI in your pocket.
+                EntrepAIneur is a holding company dedicated to launching and scaling AI-driven applications for the global south. 
+                From logistics to legal tech, we build tools that empower the next generation of builders.
               </motion.p>
 
               <motion.div 
@@ -776,11 +794,11 @@ export default function App() {
         </section>
 
         {/* Products Grid Section */}
-        <section id="products" className="py-24 bg-espresso relative overflow-hidden">
+        <section id="ventures" className="py-24 bg-espresso relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">Built for your vertical</h2>
-              <p className="text-cream/60 max-w-2xl mx-auto">Specific tools for specific trades. No generic software, just AI that understands your business.</p>
+              <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">Our Portfolio of Ventures</h2>
+              <p className="text-cream/60 max-w-2xl mx-auto">We identify critical gaps in emerging markets and fill them with intelligent, scalable AI solutions.</p>
               
               {productFilter && (
                 <motion.div 
@@ -848,6 +866,15 @@ export default function App() {
                   link: "#",
                   icon: "🍱", 
                   color: "pink" 
+                },
+                { 
+                  name: "Signal to Startup", 
+                  desc: "Turn news, policy, and market signals into actionable business opportunities.", 
+                  detailedDesc: "Signal to Startup uses advanced AI to monitor global and local news, policy changes, and market trends. It distills complex signals into clear, actionable business opportunities for entrepreneurs looking for their next venture or seeking to pivot in a changing landscape.",
+                  image: "https://picsum.photos/seed/signals/800/600",
+                  link: "#",
+                  icon: "📡", 
+                  color: "cyan" 
                 }
               ].filter(p => !productFilter || p.name === productFilter).map((product, i) => (
                 <motion.div
@@ -888,7 +915,7 @@ export default function App() {
                       }}
                       className="w-full bg-white/5 border border-white/10 text-cream font-bold py-3 rounded-xl hover:bg-amber-custom hover:text-espresso transition-all flex items-center justify-center gap-2 text-sm"
                     >
-                      View Details <ArrowRight size={16} />
+                      Learn More <ArrowRight size={16} />
                     </button>
                   </div>
                 </motion.div>
@@ -948,6 +975,84 @@ export default function App() {
           </div>
         </section>
 
+        {/* Insights / Blog Section */}
+        <section id="insights" className="py-24 bg-cream text-espresso relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+              <div className="max-w-2xl">
+                <span className="text-ochre font-mono text-xs tracking-widest uppercase mb-4 block">Insights & Strategy</span>
+                <h2 className="text-4xl md:text-6xl font-display font-bold leading-tight">
+                  The <span className="italic font-serif font-medium text-ochre">EntrepAIneur</span> Journal
+                </h2>
+              </div>
+              <p className="text-espresso/60 max-w-md text-lg font-light">
+                Deep dives into the intersection of AI, emerging markets, and the future of work.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Why Voice-First AI is the Key to the Global South",
+                  excerpt: "In markets where literacy and digital literacy vary, voice interfaces are bridging the gap between complexity and utility.",
+                  author: "Dain Russell",
+                  date: "March 20, 2026",
+                  image: "https://picsum.photos/seed/voice-ai/800/500",
+                  tag: "Strategy"
+                },
+                {
+                  title: "The Rise of Agentic AI in Small Business Logistics",
+                  excerpt: "How autonomous agents are handling the 'invisible' work of scheduling, compliance, and inventory for micro-entrepreneurs.",
+                  author: "EntrepAIneur Team",
+                  date: "March 15, 2026",
+                  image: "https://picsum.photos/seed/logistics/800/500",
+                  tag: "Technology"
+                },
+                {
+                  title: "Building for the Informal Economy: A New Playbook",
+                  excerpt: "Traditional SaaS models fail in informal markets. Here's how we're rethinking distribution and monetization.",
+                  author: "Dain Russell",
+                  date: "March 10, 2026",
+                  image: "https://picsum.photos/seed/economy/800/500",
+                  tag: "Insights"
+                }
+              ].map((post, i) => (
+                <motion.div
+                  key={post.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-3xl mb-6 shadow-xl">
+                    <img 
+                      src={post.image} 
+                      alt={post.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-white/90 backdrop-blur-sm text-espresso text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-black/5">
+                        {post.tag}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-ochre font-bold text-[10px] uppercase tracking-widest mb-2">{post.date} • {post.author}</p>
+                  <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-ochre transition-colors leading-tight">{post.title}</h3>
+                  <p className="text-espresso/60 text-sm leading-relaxed line-clamp-2">{post.excerpt}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-16 text-center">
+              <button className="group border-2 border-espresso px-8 py-3 rounded-full font-bold hover:bg-espresso hover:text-cream transition-all flex items-center gap-2 mx-auto">
+                Read All Insights <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Waitlist Form Section */}
         <section id="waitlist" className="py-24 bg-espresso border-t border-white/10 relative overflow-hidden">
           {/* Subtle background element */}
@@ -961,7 +1066,7 @@ export default function App() {
                 viewport={{ once: true }}
                 className="font-display text-4xl md:text-5xl font-bold mb-4"
               >
-                Join the Waitlist
+                The Newsletter
               </motion.h2>
               <motion.p 
                 initial={{ opacity: 0, y: 20 }}
@@ -970,8 +1075,8 @@ export default function App() {
                 transition={{ delay: 0.1 }}
                 className="text-cream/60"
               >
-                Be the first to build with EntrepAIneur in your market. 
-                Tell us what you do, and we'll reach out.
+                Get our latest insights on AI and emerging markets delivered to your inbox. 
+                No spam, just strategy.
               </motion.p>
             </div>
 
@@ -1225,20 +1330,7 @@ export default function App() {
                 </div>
 
                 <button 
-                  onClick={async () => {
-                    if (waitlistDocId && qualifierData) {
-                      try {
-                        await updateWaitlistQualifier(
-                          waitlistDocId,
-                          qualifierData.questions,
-                          qualifierAnswers
-                        );
-                      } catch (err) {
-                        console.error('Failed to save qualifier answers', err);
-                      }
-                    }
-                    setShowQualifier(false);
-                  }}
+                  onClick={() => setShowQualifier(false)}
                   className="w-full mt-8 bg-cream text-espresso font-bold py-4 rounded-xl hover:bg-amber-custom transition-all"
                 >
                   Complete Profile
@@ -1260,10 +1352,11 @@ export default function App() {
                 className="absolute inset-0 bg-espresso/90 backdrop-blur-md"
               />
               <motion.div 
+                ref={modalScrollRef}
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="relative bg-white/5 border border-white/10 p-8 md:p-12 rounded-[2.5rem] max-w-3xl w-full shadow-2xl overflow-y-auto max-h-[90vh]"
+                className="relative bg-white/5 border border-white/10 p-8 md:p-12 rounded-[2.5rem] max-w-3xl w-full shadow-2xl overflow-y-auto max-h-[90vh] scroll-smooth"
               >
                 <div className="flex justify-between items-start mb-8">
                   <div className="flex items-center gap-4">
@@ -1427,9 +1520,16 @@ export default function App() {
             </span>
           </div>
           <p className="text-cream/40 text-sm">© 2026 EntrepAIneur. Built for the builders.</p>
-          <div className="flex gap-6">
-            <a href="#" className="text-cream/40 hover:text-cream transition-colors text-sm">Twitter</a>
-            <a href="#" className="text-cream/40 hover:text-cream transition-colors text-sm">LinkedIn</a>
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex gap-6">
+              <a href="#ventures" className="text-xs font-bold uppercase tracking-widest text-cream/40 hover:text-amber-custom transition-colors">Ventures</a>
+              <a href="#insights" className="text-xs font-bold uppercase tracking-widest text-cream/40 hover:text-amber-custom transition-colors">Insights</a>
+              <a href="#about" className="text-xs font-bold uppercase tracking-widest text-cream/40 hover:text-amber-custom transition-colors">About</a>
+            </div>
+            <div className="flex gap-6">
+              <a href="#" className="text-cream/40 hover:text-cream transition-colors text-sm">Twitter</a>
+              <a href="#" className="text-cream/40 hover:text-cream transition-colors text-sm">LinkedIn</a>
+            </div>
           </div>
         </div>
       </footer>

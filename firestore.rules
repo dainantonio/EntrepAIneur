@@ -23,6 +23,16 @@
 //   - createdAt: timestamp (required)
 //   - updatedAt: timestamp (optional)
 //
+// Collection: posts
+// Fields:
+//   - title: string (required)
+//   - content: string (required)
+//   - excerpt: string (required)
+//   - author: string (required)
+//   - image: string (optional)
+//   - tags: list (optional)
+//   - createdAt: timestamp (required)
+//
 // ===============================================================
 
 rules_version = '2';
@@ -88,6 +98,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated() && request.auth.uid == userId;
       allow write: if false; // Managed via admin console or specific logic
+    }
+
+    // Blog posts
+    match /posts/{postId} {
+      allow read: if true; // Publicly readable
+      allow write: if isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "dain.russell@gmail.com" && request.auth.token.email_verified == true));
     }
   }
 }

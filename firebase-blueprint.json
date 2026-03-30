@@ -79,6 +79,44 @@
         }
       },
       "required": ["name", "email", "business", "createdAt"]
+    },
+    "posts": {
+      "title": "Blog Post",
+      "description": "A post for the EntrepAIneur insights blog.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the post"
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content of the post in Markdown"
+        },
+        "excerpt": {
+          "type": "string",
+          "description": "A short summary of the post"
+        },
+        "author": {
+          "type": "string",
+          "description": "The author's name"
+        },
+        "image": {
+          "type": "string",
+          "description": "The URL of the cover image"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of tags for the post"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the post was published"
+        }
+      },
+      "required": ["title", "content", "excerpt", "author", "createdAt"]
     }
   },
   "firestore": {
@@ -89,6 +127,10 @@
     "profiles": {
       "schema": "profile",
       "description": "User business profiles created during onboarding"
+    },
+    "posts": {
+      "schema": "posts",
+      "description": "Blog posts for entrepreneurial insights"
     }
   }
 }

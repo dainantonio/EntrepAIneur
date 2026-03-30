@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, serverTimestamp, updateDoc, doc as firestoreDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -60,16 +60,7 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-export const joinWaitlist = async (data: {
-  name: string;
-  email: string;
-  business: string;
-  market?: string;
-  productInterest?: string;
-  qualifierQuestions?: string[];
-  qualifierAnswers?: string[];
-  aiReasoning?: string;
-}) => {
+export const joinWaitlist = async (data: { name: string, email: string, business: string, market?: string, productInterest?: string }) => {
   const path = 'waitlist';
   try {
     const docRef = await addDoc(collection(db, path), {
@@ -79,22 +70,5 @@ export const joinWaitlist = async (data: {
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, path);
-  }
-};
-
-export const updateWaitlistQualifier = async (
-  docId: string,
-  qualifierQuestions: string[],
-  qualifierAnswers: string[]
-) => {
-  const path = `waitlist/${docId}`;
-  try {
-    await updateDoc(firestoreDoc(db, 'waitlist', docId), {
-      qualifierQuestions,
-      qualifierAnswers,
-      qualifierCompletedAt: serverTimestamp()
-    });
-  } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, path);
   }
 };
